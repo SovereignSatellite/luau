@@ -167,6 +167,7 @@ struct PrimitiveType
         Function,
         Table,
         Buffer,
+        Integer,
     };
 
     Type type;
@@ -1007,6 +1008,7 @@ public:
     const TypeId booleanType;
     const TypeId threadType;
     const TypeId bufferType;
+    const TypeId integerType;
     const TypeId functionType;
     const TypeId externType;
     const TypeId tableType;

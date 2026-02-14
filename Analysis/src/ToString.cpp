@@ -611,6 +611,9 @@ struct TypeStringifier
         case PrimitiveType::Buffer:
             state.emit("buffer");
             return;
+        case PrimitiveType::Integer:
+            state.emit("integer");
+            return;
         case PrimitiveType::Function:
             state.emit("function");
             return;

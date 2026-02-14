@@ -236,6 +236,10 @@ struct NormalizedType
     // This type is either never or buffer.
     TypeId buffers;
 
+    // The integer part of the type.
+    // This type is either never or integer.
+    TypeId integers;
+
     // The (meta)table part of the type.
     // Each element of this set is a (meta)table type, or the top `table` type.
     // An empty set denotes never.
@@ -293,6 +297,7 @@ struct NormalizedType
     bool hasStrings() const;
     bool hasThreads() const;
     bool hasBuffers() const;
+    bool hasIntegers() const;
     bool hasTables() const;
     bool hasFunctions() const;
     bool hasTyvars() const;

@@ -43,6 +43,7 @@ struct TypeFunctionPrimitiveType
         String,
         Thread,
         Buffer,
+        Integer,
     };
 
     Type type;

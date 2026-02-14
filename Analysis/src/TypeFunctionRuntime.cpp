@@ -387,6 +387,14 @@ static int createBuffer(lua_State* L)
     return 1;
 }
 
+// Luau: `type.integer`
+static int createInteger(lua_State* L)
+{
+    allocTypeUserData(L, TypeFunctionPrimitiveType{TypeFunctionPrimitiveType::Integer});
+
+    return 1;
+}
+
 // Luau: `type.singleton(value: string | boolean | nil) -> type`
 // Returns the type instance representing string or boolean singleton or nil
 static int createSingleton(lua_State* L)
@@ -1749,6 +1757,7 @@ void registerTypesLibrary(lua_State* L)
         {"string", createString},
         {"thread", createThread},
         {"buffer", createBuffer},
+        {"integer", createInteger},
         {nullptr, nullptr}
     };
 
@@ -2470,6 +2479,9 @@ private:
                 break;
             case TypeFunctionPrimitiveType::Buffer:
                 target = typeFunctionRuntime->typeArena.allocate(TypeFunctionPrimitiveType(TypeFunctionPrimitiveType::Buffer));
+                break;
+            case TypeFunctionPrimitiveType::Integer:
+                target = typeFunctionRuntime->typeArena.allocate(TypeFunctionPrimitiveType(TypeFunctionPrimitiveType::Integer));
                 break;
             default:
                 break;

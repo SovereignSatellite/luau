@@ -120,6 +120,8 @@ declare math: {
 
     pi: number,
     huge: number,
+    maxinteger: integer,
+    mininteger: integer,
 
     randomseed: @checked (seed: number) -> (),
     random: @checked (number?, number?) -> number,
@@ -276,6 +278,7 @@ declare buffer: {
     readu32: @checked (b: buffer, offset: number) -> number,
     readf32: @checked (b: buffer, offset: number) -> number,
     readf64: @checked (b: buffer, offset: number) -> number,
+    readinteger: @checked (b: buffer, offset: number) -> integer,
     writei8: @checked (b: buffer, offset: number, value: number) -> (),
     writeu8: @checked (b: buffer, offset: number, value: number) -> (),
     writei16: @checked (b: buffer, offset: number, value: number) -> (),
@@ -284,6 +287,7 @@ declare buffer: {
     writeu32: @checked (b: buffer, offset: number, value: number) -> (),
     writef32: @checked (b: buffer, offset: number, value: number) -> (),
     writef64: @checked (b: buffer, offset: number, value: number) -> (),
+    writeinteger: @checked (b: buffer, offset: number, value: integer) -> (),
     readstring: @checked (b: buffer, offset: number, count: number) -> string,
     writestring: @checked (b: buffer, offset: number, value: string, count: number?) -> (),
     readbits: @checked (b: buffer, bitOffset: number, bitCount: number) -> number,
@@ -323,6 +327,49 @@ declare vector: {
 
 )BUILTIN_SRC";
 
+static constexpr const char* kBuiltinDefinitionIntegerSrc = R"BUILTIN_SRC(
+
+declare integer: {
+    create: @checked (n: number) -> integer?,
+    fromstring: @checked (str: string, base: number?) -> integer?,
+    tostring: @checked (n: integer) -> string,
+    tonumber: @checked (n: integer) -> number,
+    neg: @checked (a: integer) -> integer,
+    add: @checked (a: integer, b: integer) -> integer,
+    sub: @checked (a: integer, b: integer) -> integer,
+    mul: @checked (a: integer, b: integer) -> integer,
+    div: @checked (a: integer, b: integer) -> integer,
+    rem: @checked (a: integer, b: integer) -> integer,
+    idiv: @checked (a: integer, b: integer) -> integer,
+    mod: @checked (a: integer, b: integer) -> integer,
+    udiv: @checked (a: integer, b: integer) -> integer,
+    urem: @checked (a: integer, b: integer) -> integer,
+    min: @checked (a: integer, b: integer) -> integer,
+    max: @checked (a: integer, b: integer) -> integer,
+    clamp: @checked (a: integer, min: integer, max: integer) -> integer,
+    band: @checked (a: integer, b: integer) -> integer,
+    bor: @checked (a: integer, b: integer) -> integer,
+    bnot: @checked (a: integer) -> integer,
+    bxor: @checked (a: integer, b: integer) -> integer,
+    lt: @checked (a: integer, b: integer) -> boolean,
+    le: @checked (a: integer, b: integer) -> boolean,
+    ult: @checked (a: integer, b: integer) -> boolean,
+    ule: @checked (a: integer, b: integer) -> boolean,
+    lshift: @checked (n: integer, i: integer) -> integer,
+    rshift: @checked (n: integer, i: integer) -> integer,
+    arshift: @checked (n: integer, i: integer) -> integer,
+    lrotate: @checked (n: integer, i: integer) -> integer,
+    rrotate: @checked (n: integer, i: integer) -> integer,
+    extract: @checked (n: integer, f: integer, w: integer?) -> integer,
+    replace: @checked (n: integer, r: integer, f: integer, w: integer?) -> integer,
+    btest: @checked (a: integer, b: integer) -> boolean,
+    countrz: @checked (n: integer) -> integer,
+    countlz: @checked (n: integer) -> integer,
+    bswap: @checked (n: integer) -> integer,
+}
+
+)BUILTIN_SRC";
+
 std::string getBuiltinDefinitionSource()
 {
     std::string result = kBuiltinDefinitionBaseSrc;
@@ -343,6 +390,7 @@ std::string getBuiltinDefinitionSource()
     result += kBuiltinDefinitionUtf8Src;
     result += kBuiltinDefinitionBufferSrc;
     result += kBuiltinDefinitionVectorSrc;
+    result += kBuiltinDefinitionIntegerSrc;
 
     return result;
 }

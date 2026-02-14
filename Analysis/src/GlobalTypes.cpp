@@ -19,6 +19,7 @@ GlobalTypes::GlobalTypes(NotNull<BuiltinTypes> builtinTypes, SolverMode mode)
     globalScope->addBuiltinTypeBinding("boolean", TypeFun{{}, builtinTypes->booleanType});
     globalScope->addBuiltinTypeBinding("thread", TypeFun{{}, builtinTypes->threadType});
     globalScope->addBuiltinTypeBinding("buffer", TypeFun{{}, builtinTypes->bufferType});
+    globalScope->addBuiltinTypeBinding("integer", TypeFun{{}, builtinTypes->integerType});
     globalScope->addBuiltinTypeBinding("unknown", TypeFun{{}, builtinTypes->unknownType});
     globalScope->addBuiltinTypeBinding("never", TypeFun{{}, builtinTypes->neverType});
 

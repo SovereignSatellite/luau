@@ -165,6 +165,9 @@ private:
             case PrimitiveType::Buffer:
                 target = typeFunctionRuntime->typeArena.allocate(TypeFunctionPrimitiveType(TypeFunctionPrimitiveType::Buffer));
                 break;
+            case PrimitiveType::Integer:
+                target = typeFunctionRuntime->typeArena.allocate(TypeFunctionPrimitiveType(TypeFunctionPrimitiveType::Integer));
+                break;
             case PrimitiveType::Function:
             case PrimitiveType::Table:
             default:
@@ -679,6 +682,9 @@ private:
                 break;
             case TypeFunctionPrimitiveType::Type::Buffer:
                 target = state->ctx->builtins->bufferType;
+                break;
+            case TypeFunctionPrimitiveType::Type::Integer:
+                target = state->ctx->builtins->integerType;
                 break;
             default:
                 state->ctx->ice->ice("Deserializing user defined type function arguments: mysterious type is being deserialized");

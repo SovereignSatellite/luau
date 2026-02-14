@@ -106,6 +106,8 @@ public:
             return allocator->alloc<AstTypeReference>(Location(), std::nullopt, AstName("thread"), std::nullopt, Location());
         case PrimitiveType::Buffer:
             return allocator->alloc<AstTypeReference>(Location(), std::nullopt, AstName("buffer"), std::nullopt, Location());
+        case PrimitiveType::Integer:
+            return allocator->alloc<AstTypeReference>(Location(), std::nullopt, AstName("integer"), std::nullopt, Location());
         case PrimitiveType::Function:
             return allocator->alloc<AstTypeReference>(Location(), std::nullopt, AstName("function"), std::nullopt, Location());
         case PrimitiveType::Table:

@@ -174,6 +174,7 @@ NormalizedType::NormalizedType(NotNull<BuiltinTypes> builtinTypes)
     , strings{NormalizedStringType::never}
     , threads(builtinTypes->neverType)
     , buffers(builtinTypes->neverType)
+    , integers(builtinTypes->neverType)
 {
 }
 
@@ -184,7 +185,7 @@ bool NormalizedType::isUnknown() const
 
     // Otherwise, we can still be unknown!
     bool hasAllPrimitives = isPrim(booleans, PrimitiveType::Boolean) && isPrim(nils, PrimitiveType::NilType) && isNumber(numbers) &&
-                            strings.isString() && isThread(threads) && isBuffer(buffers);
+                            strings.isString() && isThread(threads) && isBuffer(buffers) && isPrim(integers, PrimitiveType::Integer);
 
     // Check is class
     bool isTopExternType = false;
@@ -295,6 +296,11 @@ bool NormalizedType::hasBuffers() const
     return !get<NeverType>(buffers);
 }
 
+bool NormalizedType::hasIntegers() const
+{
+    return !get<NeverType>(integers);
+}
+
 bool NormalizedType::hasTables() const
 {
     return !tables.isNever();
@@ -343,7 +349,8 @@ static bool isShallowInhabited(const NormalizedType& norm)
     // This test is just a shallow check, for example it returns `true` for `{ p : never }`
     return !get<NeverType>(norm.tops) || !get<NeverType>(norm.booleans) || !norm.externTypes.isNever() || !get<NeverType>(norm.errors) ||
            !get<NeverType>(norm.nils) || !get<NeverType>(norm.numbers) || !norm.strings.isNever() || !get<NeverType>(norm.threads) ||
-           !get<NeverType>(norm.buffers) || !norm.functions.isNever() || !norm.tables.empty() || !norm.tyvars.empty();
+           !get<NeverType>(norm.buffers) || !get<NeverType>(norm.integers) || !norm.functions.isNever() || !norm.tables.empty() ||
+           !norm.tyvars.empty();
 }
 
 NormalizationResult Normalizer::isInhabited(const NormalizedType* norm)
@@ -649,6 +656,16 @@ static bool isNormalizedBuffer(TypeId ty)
         return false;
 }
 
+static bool isNormalizedInteger(TypeId ty)
+{
+    if (get<NeverType>(ty))
+        return true;
+    else if (const PrimitiveType* ptv = get<PrimitiveType>(ty))
+        return ptv->type == PrimitiveType::Integer;
+    else
+        return false;
+}
+
 static bool areNormalizedFunctions(const NormalizedFunctionType& tys)
 {
     for (TypeId ty : tys.parts)
@@ -771,6 +788,7 @@ static void assertInvariant(const NormalizedType& norm)
     LUAU_ASSERT(isNormalizedString(norm.strings));
     LUAU_ASSERT(isNormalizedThread(norm.threads));
     LUAU_ASSERT(isNormalizedBuffer(norm.buffers));
+    LUAU_ASSERT(isNormalizedInteger(norm.integers));
     LUAU_ASSERT(areNormalizedFunctions(norm.functions));
     LUAU_ASSERT(areNormalizedTables(norm.tables));
     LUAU_ASSERT(isNormalizedTyvar(norm.tyvars));
@@ -931,6 +949,7 @@ void Normalizer::clearNormal(NormalizedType& norm)
     norm.strings.resetToNever();
     norm.threads = builtinTypes->neverType;
     norm.buffers = builtinTypes->neverType;
+    norm.integers = builtinTypes->neverType;
     norm.tables.clear();
     norm.functions.resetToNever();
     norm.tyvars.clear();
@@ -1659,6 +1678,7 @@ NormalizationResult Normalizer::unionNormals(NormalizedType& here, const Normali
     unionStrings(here.strings, there.strings);
     here.threads = (get<NeverType>(there.threads) ? here.threads : there.threads);
     here.buffers = (get<NeverType>(there.buffers) ? here.buffers : there.buffers);
+    here.integers = (get<NeverType>(there.integers) ? here.integers : there.integers);
     unionFunctions(here.functions, there.functions);
     unionTables(here.tables, there.tables);
 
@@ -1817,6 +1837,8 @@ NormalizationResult Normalizer::unionNormalWithTy(
             here.threads = there;
         else if (ptv->type == PrimitiveType::Buffer)
             here.buffers = there;
+        else if (ptv->type == PrimitiveType::Integer)
+            here.integers = there;
         else if (ptv->type == PrimitiveType::Function)
         {
             here.functions.resetToTop();
@@ -1948,6 +1970,7 @@ std::optional<NormalizedType> Normalizer::negateNormal(const NormalizedType& her
 
     result.threads = get<NeverType>(here.threads) ? builtinTypes->threadType : builtinTypes->neverType;
     result.buffers = get<NeverType>(here.buffers) ? builtinTypes->bufferType : builtinTypes->neverType;
+    result.integers = get<NeverType>(here.integers) ? builtinTypes->integerType : builtinTypes->neverType;
 
     /*
      * Things get weird and so, so complicated if we allow negations of
@@ -2045,6 +2068,9 @@ void Normalizer::subtractPrimitive(NormalizedType& here, TypeId ty)
         break;
     case PrimitiveType::Buffer:
         here.buffers = builtinTypes->neverType;
+        break;
+    case PrimitiveType::Integer:
+        here.integers = builtinTypes->neverType;
         break;
     case PrimitiveType::Function:
         here.functions.resetToNever();
@@ -3090,6 +3116,7 @@ NormalizationResult Normalizer::intersectNormals(NormalizedType& here, const Nor
     intersectStrings(here.strings, there.strings);
     here.threads = (get<NeverType>(there.threads) ? there.threads : here.threads);
     here.buffers = (get<NeverType>(there.buffers) ? there.buffers : here.buffers);
+    here.integers = (get<NeverType>(there.integers) ? there.integers : here.integers);
     intersectFunctions(here.functions, there.functions);
     intersectTables(here.tables, there.tables);
 
@@ -3227,6 +3254,7 @@ NormalizationResult Normalizer::intersectNormalWithTy(
         NormalizedFunctionType functions = std::move(here.functions);
         TypeId threads = here.threads;
         TypeId buffers = here.buffers;
+        TypeId integers = here.integers;
         TypeIds tables = std::move(here.tables);
 
         clearNormal(here);
@@ -3243,6 +3271,8 @@ NormalizationResult Normalizer::intersectNormalWithTy(
             here.threads = threads;
         else if (ptv->type == PrimitiveType::Buffer)
             here.buffers = buffers;
+        else if (ptv->type == PrimitiveType::Integer)
+            here.integers = integers;
         else if (ptv->type == PrimitiveType::Function)
             here.functions = std::move(functions);
         else if (ptv->type == PrimitiveType::Table)
