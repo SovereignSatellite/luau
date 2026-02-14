@@ -6,6 +6,7 @@
 
 #include <math.h>
 #include <time.h>
+#include <stdint.h>
 
 #undef PI
 #define PI (3.14159265358979323846)
@@ -511,6 +512,11 @@ int luaopen_math(lua_State* L)
     lua_setfield(L, -2, "pi");
     lua_pushnumber(L, HUGE_VAL);
     lua_setfield(L, -2, "huge");
+
+    lua_pushinteger64(L, INT64_MAX);
+    lua_setfield(L, -2, "maxinteger");
+    lua_pushinteger64(L, INT64_MIN);
+    lua_setfield(L, -2, "mininteger");
 
     return 1;
 }

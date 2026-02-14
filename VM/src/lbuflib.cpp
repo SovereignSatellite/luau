@@ -328,6 +328,44 @@ static int buffer_writebits(lua_State* L)
     return 0;
 }
 
+static int buffer_readinteger64(lua_State* L)
+{
+    size_t len = 0;
+    void* buf = luaL_checkbuffer(L, 1, &len);
+    int offset = luaL_checkinteger(L, 2);
+
+    if (isoutofbounds(offset, len, sizeof(int64_t)))
+        luaL_error(L, "buffer access out of bounds");
+
+    int64_t val;
+    memcpy(&val, (char*)buf + offset, sizeof(int64_t));
+
+#if defined(LUAU_BIG_ENDIAN)
+    val = buffer_swapbe(val);
+#endif
+
+    lua_pushinteger64(L, val);
+    return 1;
+}
+
+static int buffer_writeinteger64(lua_State* L)
+{
+    size_t len = 0;
+    void* buf = luaL_checkbuffer(L, 1, &len);
+    int offset = luaL_checkinteger(L, 2);
+    int64_t value = luaL_checkinteger64(L, 3);
+
+    if (isoutofbounds(offset, len, sizeof(int64_t)))
+        luaL_error(L, "buffer access out of bounds");
+
+#if defined(LUAU_BIG_ENDIAN)
+    value = buffer_swapbe(value);
+#endif
+
+    memcpy((char*)buf + offset, &value, sizeof(int64_t));
+    return 0;
+}
+
 static const luaL_Reg bufferlib[] = {
     {"create", buffer_create},
     {"fromstring", buffer_fromstring},
@@ -348,6 +386,8 @@ static const luaL_Reg bufferlib[] = {
     {"writeu32", buffer_writeinteger<uint32_t>},
     {"writef32", buffer_writefp<float, uint32_t>},
     {"writef64", buffer_writefp<double, uint64_t>},
+    {"readinteger", buffer_readinteger64},
+    {"writeinteger", buffer_writeinteger64},
     {"readstring", buffer_readstring},
     {"writestring", buffer_writestring},
     {"len", buffer_len},
