@@ -1451,9 +1451,16 @@ struct Compiler
                 std::swap(left, right);
         }
 
-        // disable fast path for vectors because supporting it would require a new opcode
+        // disable fast path for vectors and integers because supporting them would require new opcodes
         if (operandIsConstant && isConstantVector(right))
             operandIsConstant = false;
+
+        if (operandIsConstant)
+        {
+            const Constant* cv = constants.find(right);
+            if (cv && cv->type == Constant::Type_Integer)
+                operandIsConstant = false;
+        }
 
         uint8_t rl = compileExprAuto(left, rs);
 
@@ -2491,6 +2498,16 @@ struct Compiler
         }
         break;
 
+        case Constant::Type_Integer:
+        {
+            int32_t cid = bytecode.addConstantInteger(cv->valueInteger);
+            if (cid < 0)
+                CompileError::raise(node->location, "Exceeded constant limit; simplify the code to compile");
+
+            emitLoadK(target, cid);
+        }
+        break;
+
         default:
             LUAU_ASSERT(!"Unexpected constant type");
         }
@@ -2527,6 +2544,14 @@ struct Compiler
         else if (AstExprConstantNumber* expr = node->as<AstExprConstantNumber>())
         {
             int32_t cid = bytecode.addConstantNumber(expr->value);
+            if (cid < 0)
+                CompileError::raise(expr->location, "Exceeded constant limit; simplify the code to compile");
+
+            emitLoadK(target, cid);
+        }
+        else if (AstExprConstantInteger* expr = node->as<AstExprConstantInteger>())
+        {
+            int32_t cid = bytecode.addConstantInteger(expr->value);
             if (cid < 0)
                 CompileError::raise(expr->location, "Exceeded constant limit; simplify the code to compile");
 

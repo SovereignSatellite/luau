@@ -55,6 +55,7 @@ public:
     int32_t addConstantBoolean(bool value);
     int32_t addConstantNumber(double value);
     int32_t addConstantVector(float x, float y, float z, float w);
+    int32_t addConstantInteger(int64_t value);
     int32_t addConstantString(StringRef value);
     int32_t addImport(uint32_t iid);
     int32_t addConstantTable(const TableShape& shape);
@@ -160,6 +161,7 @@ private:
             Type_Import,
             Type_Table,
             Type_Closure,
+            Type_Integer,
         };
 
         Type type;
@@ -172,6 +174,7 @@ private:
             uint32_t valueImport;     // 10-10-10-2 encoded import id
             uint32_t valueTable;      // index into tableShapes[]
             uint32_t valueClosure;    // index of function in global list
+            int64_t valueInteger;
         };
     };
 

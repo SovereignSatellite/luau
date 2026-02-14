@@ -472,6 +472,13 @@ static int loadsafe(
                 break;
             }
 
+            case LBC_CONSTANT_INTEGER:
+            {
+                int64_t v = read<int64_t>(data, size, offset);
+                setivalue(&p->k[j], v);
+                break;
+            }
+
             case LBC_CONSTANT_STRING:
             {
                 TString* v = readString(strings, data, size, offset);

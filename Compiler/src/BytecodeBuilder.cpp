@@ -392,6 +392,18 @@ int32_t BytecodeBuilder::addConstantVector(float x, float y, float z, float w)
     return addConstant(k, c);
 }
 
+int32_t BytecodeBuilder::addConstantInteger(int64_t value)
+{
+    Constant c = {Constant::Type_Integer};
+    c.valueInteger = value;
+
+    ConstantKey k = {Constant::Type_Integer};
+    static_assert(sizeof(k.value) == sizeof(value), "Expecting int64_t to be 64-bit");
+    memcpy(&k.value, &value, sizeof(value));
+
+    return addConstant(k, c);
+}
+
 int32_t BytecodeBuilder::addConstantString(StringRef value)
 {
     unsigned int index = addStringTableEntry(value);
@@ -832,6 +844,11 @@ void BytecodeBuilder::writeFunction(std::string& ss, uint32_t id, uint8_t flags)
         case Constant::Type_Closure:
             writeByte(ss, LBC_CONSTANT_CLOSURE);
             writeVarInt(ss, c.valueClosure);
+            break;
+
+        case Constant::Type_Integer:
+            writeByte(ss, LBC_CONSTANT_INTEGER);
+            ss.append(reinterpret_cast<const char*>(&c.valueInteger), sizeof(c.valueInteger));
             break;
 
         default:
@@ -1840,6 +1857,9 @@ void BytecodeBuilder::dumpConstant(std::string& result, int k) const
         break;
     case Constant::Type_Number:
         formatAppend(result, "%.17g", data.valueNumber);
+        break;
+    case Constant::Type_Integer:
+        formatAppend(result, "%lld", static_cast<long long>(data.valueInteger));
         break;
     case Constant::Type_Vector:
         // 3-vectors is the most common configuration, so truncate to three components if possible
