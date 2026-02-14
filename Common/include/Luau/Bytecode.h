@@ -475,6 +475,7 @@ enum LuauBytecodeTag
     LBC_CONSTANT_TABLE,
     LBC_CONSTANT_CLOSURE,
     LBC_CONSTANT_VECTOR,
+    LBC_CONSTANT_INTEGER,
 };
 
 // Type table tags
@@ -490,6 +491,7 @@ enum LuauBytecodeType
     LBC_TYPE_USERDATA,
     LBC_TYPE_VECTOR,
     LBC_TYPE_BUFFER,
+    LBC_TYPE_INTEGER,
 
     LBC_TYPE_ANY = 15,
 

@@ -10,6 +10,7 @@
 #include "lnumutils.h"
 
 #include <string.h>
+#include <stdio.h>
 
 LUAU_FASTFLAG(LuauStacklessPcall)
 
@@ -253,6 +254,22 @@ const float* luaL_checkvector(lua_State* L, int narg)
 const float* luaL_optvector(lua_State* L, int narg, const float* def)
 {
     return luaL_opt(L, luaL_checkvector, narg, def);
+}
+
+int64_t luaL_checkinteger64(lua_State* L, int narg)
+{
+    int isinteger;
+    int64_t d = lua_tointeger64(L, narg, &isinteger);
+    if (!isinteger)
+        tag_error(L, narg, LUA_TINTEGER);
+    return d;
+}
+
+int64_t luaL_optinteger64(lua_State* L, int narg, int64_t def)
+{
+    if (lua_isnoneornil(L, narg))
+        return def;
+    return luaL_checkinteger64(L, narg);
 }
 
 int luaL_getmetafield(lua_State* L, int obj, const char* event)

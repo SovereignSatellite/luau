@@ -520,6 +520,23 @@ const float* lua_tovector(lua_State* L, int idx)
     return vvalue(o);
 }
 
+int64_t lua_tointeger64(lua_State* L, int idx, int* isinteger)
+{
+    StkId o = index2addr(L, idx);
+    if (ttisinteger(o))
+    {
+        if (isinteger)
+            *isinteger = 1;
+        return ivalue(o);
+    }
+    else
+    {
+        if (isinteger)
+            *isinteger = 0;
+        return 0;
+    }
+}
+
 int lua_objlen(lua_State* L, int idx)
 {
     StkId o = index2addr(L, idx);
@@ -665,6 +682,12 @@ void lua_pushvector(lua_State* L, float x, float y, float z)
     api_incr_top(L);
 }
 #endif
+
+void lua_pushinteger64(lua_State* L, int64_t n)
+{
+    setivalue(L->top, n);
+    api_incr_top(L);
+}
 
 void lua_pushlstring(lua_State* L, const char* s, size_t len)
 {
