@@ -8,6 +8,7 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <string.h>
 
 LUAU_FASTINTVARIABLE(LuauRecursionLimit, 1000)
@@ -4141,6 +4142,54 @@ AstArray<AstTypeOrPack> Parser::parseTypeInstantiationExpr(CstTypeInstantiation*
 }
 
 
+static ConstantIntegerParseResult parseInteger64(int64_t& result, const char* data)
+{
+    // binary literal
+    if (data[0] == '0' && (data[1] == 'b' || data[1] == 'B') && data[2])
+    {
+        char* end = nullptr;
+        errno = 0;
+        unsigned long long value = strtoull(data + 2, &end, 2);
+        if (*end != 0)
+            return ConstantIntegerParseResult::Malformed;
+        if (errno == ERANGE)
+            return ConstantIntegerParseResult::Overflow;
+        // must fit in 64 bits
+        if (value > uint64_t(ULLONG_MAX))
+            return ConstantIntegerParseResult::Overflow;
+        result = int64_t(value);
+        return ConstantIntegerParseResult::Ok;
+    }
+
+    // hexadecimal literal
+    if (data[0] == '0' && (data[1] == 'x' || data[1] == 'X') && data[2])
+    {
+        char* end = nullptr;
+        errno = 0;
+        unsigned long long value = strtoull(data, &end, 16);
+        if (*end != 0)
+            return ConstantIntegerParseResult::Malformed;
+        if (errno == ERANGE)
+            return ConstantIntegerParseResult::Overflow;
+        result = int64_t(value);
+        return ConstantIntegerParseResult::Ok;
+    }
+
+    // decimal literal - parse as signed
+    char* end = nullptr;
+    errno = 0;
+    unsigned long long value = strtoull(data, &end, 10);
+    if (*end != 0)
+        return ConstantIntegerParseResult::Malformed;
+    if (errno == ERANGE)
+        return ConstantIntegerParseResult::Overflow;
+    // decimal integer literals must fit in [0, 2^63-1] when unsigned (negation is a separate unary op)
+    if (value > uint64_t(INT64_MAX))
+        return ConstantIntegerParseResult::Overflow;
+    result = int64_t(value);
+    return ConstantIntegerParseResult::Ok;
+}
+
 AstExpr* Parser::parseNumber()
 {
     Location start = lexer.current().location;
@@ -4154,6 +4203,23 @@ AstExpr* Parser::parseNumber()
     if (scratchData.find('_') != std::string::npos)
     {
         scratchData.erase(std::remove(scratchData.begin(), scratchData.end(), '_'), scratchData.end());
+    }
+
+    // Check for integer literal suffix 'i'
+    if (!scratchData.empty() && scratchData.back() == 'i')
+    {
+        scratchData.pop_back(); // remove the 'i' suffix
+
+        int64_t ivalue = 0;
+        ConstantIntegerParseResult iresult = parseInteger64(ivalue, scratchData.c_str());
+        nextLexeme();
+
+        if (iresult == ConstantIntegerParseResult::Malformed)
+            return reportExprError(start, {}, "Malformed integer");
+        if (iresult == ConstantIntegerParseResult::Overflow)
+            return reportExprError(start, {}, "Integer literal overflow");
+
+        return allocator.alloc<AstExprConstantInteger>(start, ivalue, iresult);
     }
 
     double value = 0;

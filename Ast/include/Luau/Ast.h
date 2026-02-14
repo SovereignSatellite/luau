@@ -342,6 +342,26 @@ public:
     ConstantNumberParseResult parseResult;
 };
 
+enum class ConstantIntegerParseResult
+{
+    Ok,
+    Malformed,
+    Overflow,
+};
+
+class AstExprConstantInteger : public AstExpr
+{
+public:
+    LUAU_RTTI(AstExprConstantInteger)
+
+    AstExprConstantInteger(const Location& location, int64_t value, ConstantIntegerParseResult parseResult = ConstantIntegerParseResult::Ok);
+
+    void visit(AstVisitor* visitor) override;
+
+    int64_t value;
+    ConstantIntegerParseResult parseResult;
+};
+
 class AstExprConstantString : public AstExpr
 {
 public:
@@ -1399,6 +1419,10 @@ public:
         return visit(static_cast<AstExpr*>(node));
     }
     virtual bool visit(class AstExprConstantNumber* node)
+    {
+        return visit(static_cast<AstExpr*>(node));
+    }
+    virtual bool visit(class AstExprConstantInteger* node)
     {
         return visit(static_cast<AstExpr*>(node));
     }
