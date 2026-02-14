@@ -1297,6 +1297,29 @@ void IrLoweringA64::lowerInst(IrInst& inst, uint32_t index, const IrBlock& next)
             build.cmp(regOp(OP_C(inst)), regOp(OP_D(inst)));
             build.cset(inst.regA64, getConditionInt(cond));
         }
+        else if (tagOp(OP_B(inst)) == LUA_TINTEGER)
+        {
+            if (OP_C(inst).kind == IrOpKind::Constant)
+            {
+                if (!FFlag::LuauCodegenExplicitUint16 || unsigned(intOp(OP_C(inst))) <= AssemblyBuilderA64::kMaxImmediate)
+                    build.cmp(regOp(OP_D(inst)), uint16_t(intOp(OP_C(inst)))); // swapped arguments
+                else
+                    build.cmp(regOp(OP_D(inst)), tempInt(OP_C(inst)));
+            }
+            else if (OP_D(inst).kind == IrOpKind::Constant)
+            {
+                if (!FFlag::LuauCodegenExplicitUint16 || unsigned(intOp(OP_D(inst))) <= AssemblyBuilderA64::kMaxImmediate)
+                    build.cmp(regOp(OP_C(inst)), uint16_t(intOp(OP_D(inst))));
+                else
+                    build.cmp(regOp(OP_C(inst)), tempInt(OP_D(inst)));
+            }
+            else
+            {
+                build.cmp(regOp(OP_C(inst)), regOp(OP_D(inst)));
+            }
+
+            build.cset(inst.regA64, getConditionInt(cond));
+        }
         else if (tagOp(OP_B(inst)) == LUA_TNUMBER)
         {
             RegisterA64 temp1 = tempDouble(OP_C(inst));

@@ -117,6 +117,9 @@ static uint8_t tryGetTagForTypename(std::string_view name, bool forTypeof)
     if (name == "vector" && !forTypeof)
         return LUA_TVECTOR;
 
+    if (name == "integer")
+        return LUA_TINTEGER;
+
     if (name == "string")
         return LUA_TSTRING;
 
@@ -491,6 +494,11 @@ struct ConstPropState
             {
                 if (uint32_t* prevIdx = getPreviousVersionedLoadIndex(IrCmd::LOAD_FLOAT, vmReg))
                     return std::make_pair(IrCmd::LOAD_FLOAT, *prevIdx);
+            }
+            else if (tag == LUA_TINTEGER)
+            {
+                if (uint32_t* prevIdx = getPreviousVersionedLoadIndex(IrCmd::LOAD_INT, vmReg))
+                    return std::make_pair(IrCmd::LOAD_INT, *prevIdx);
             }
             else if (isGCO(tag))
             {
@@ -3323,6 +3331,9 @@ static void setupBlockEntryState(IrBuilder& build, IrFunction& function, IrBlock
             break;
         case LBC_TYPE_VECTOR:
             state.regs[i].tag = LUA_TVECTOR;
+            break;
+        case LBC_TYPE_INTEGER:
+            state.regs[i].tag = LUA_TINTEGER;
             break;
         case LBC_TYPE_BUFFER:
             state.regs[i].tag = LUA_TBUFFER;

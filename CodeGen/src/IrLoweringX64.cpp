@@ -1295,6 +1295,17 @@ void IrLoweringX64::lowerInst(IrInst& inst, uint32_t index, const IrBlock& next)
             build.cmp(regOp(OP_C(inst)), regOp(OP_D(inst)));
             build.setcc(getConditionInt(cond), byteReg(inst.regX64));
         }
+        else if (tagOp(OP_B(inst)) == LUA_TINTEGER)
+        {
+            if (OP_C(inst).kind == IrOpKind::Constant)
+                build.cmp(regOp(OP_D(inst)), intOp(OP_C(inst))); // swapped arguments
+            else if (OP_D(inst).kind == IrOpKind::Constant)
+                build.cmp(regOp(OP_C(inst)), intOp(OP_D(inst)));
+            else
+                build.cmp(regOp(OP_C(inst)), regOp(OP_D(inst)));
+
+            build.setcc(getConditionInt(cond), byteReg(inst.regX64));
+        }
         else if (tagOp(OP_B(inst)) == LUA_TNUMBER)
         {
             if (OP_C(inst).kind == IrOpKind::Constant)

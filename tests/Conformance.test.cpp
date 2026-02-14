@@ -1331,6 +1331,11 @@ TEST_CASE("Vector")
     );
 }
 
+TEST_CASE("Integer")
+{
+    runConformance("integer.luau");
+}
+
 TEST_CASE("VectorLibrary")
 {
     ScopedFastFlag luauCodegenExtraSimd{FFlag::LuauCodegenExtraSimd, true};
@@ -1390,6 +1395,10 @@ static void populateRTTI(lua_State* L, Luau::TypeId type)
 
         case Luau::PrimitiveType::Buffer:
             lua_pushstring(L, "buffer");
+            break;
+
+        case Luau::PrimitiveType::Integer:
+            lua_pushstring(L, "integer");
             break;
 
         default:

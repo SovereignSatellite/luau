@@ -65,6 +65,8 @@ static const char* getTagName(uint8_t tag)
         return "tnumber";
     case LUA_TVECTOR:
         return "tvector";
+    case LUA_TINTEGER:
+        return "tinteger";
     case LUA_TSTRING:
         return "tstring";
     case LUA_TTABLE:
