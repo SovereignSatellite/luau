@@ -130,6 +130,30 @@ static LuaNode* hashvec(const LuaTable* t, const float* v)
 ** returns the `main' position of an element in a table (that is, the index
 ** of its hash value)
 */
+static LuaNode* hashint64(const LuaTable* t, int64_t n)
+{
+    static_assert(sizeof(int64_t) == sizeof(unsigned int) * 2, "expected a 8-byte int64");
+    unsigned int i[2];
+    memcpy(i, &n, sizeof(i));
+
+    uint32_t h1 = i[0];
+    uint32_t h2 = i[1];
+
+    // finalizer from MurmurHash64B
+    const uint32_t m = 0x5bd1e995;
+
+    h1 ^= h2 >> 18;
+    h1 *= m;
+    h2 ^= h1 >> 22;
+    h2 *= m;
+    h1 ^= h2 >> 17;
+    h1 *= m;
+    h2 ^= h1 >> 19;
+    h2 *= m;
+
+    return hashpow2(t, h2);
+}
+
 static LuaNode* mainposition(const LuaTable* t, const TValue* key)
 {
     switch (ttype(key))
@@ -138,6 +162,8 @@ static LuaNode* mainposition(const LuaTable* t, const TValue* key)
         return hashnum(t, nvalue(key));
     case LUA_TVECTOR:
         return hashvec(t, vvalue(key));
+    case LUA_TINTEGER:
+        return hashint64(t, ivalue(key));
     case LUA_TSTRING:
         return hashstr(t, tsvalue(key));
     case LUA_TBOOLEAN:

@@ -569,6 +569,14 @@ void luaL_addvalueany(luaL_Strbuf* B, int idx)
         luaL_addlstring(B, s, e - s);
         break;
     }
+    case LUA_TINTEGER:
+    {
+        char s[32];
+        int64_t n = lua_tointeger64(L, idx, NULL);
+        snprintf(s, sizeof(s), "%lld", (long long)n);
+        luaL_addlstring(B, s, strlen(s));
+        break;
+    }
     case LUA_TSTRING:
     {
         size_t len;
@@ -662,6 +670,14 @@ const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
             e = luai_num2str(e, v[i]);
         }
         lua_pushlstring(L, s, e - s);
+        break;
+    }
+    case LUA_TINTEGER:
+    {
+        char s[32];
+        int64_t n = lua_tointeger64(L, idx, NULL);
+        snprintf(s, sizeof(s), "%lld", (long long)n);
+        lua_pushstring(L, s);
         break;
     }
     case LUA_TSTRING:
